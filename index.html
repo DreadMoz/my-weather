@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>三宅小学校 天気・環境情報 (1366x768)</title>
+    <title>三宅小学校 天気・環境情報</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -11,7 +11,7 @@
         body { 
             font-family: 'BIZ UDPGothic', 'BIZ UDGothic', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; 
             background-color: #eef2f5; 
-            overflow: hidden; /* スクロールを完全に禁止 */
+            overflow: hidden; 
             height: 100vh;
             width: 100vw;
         }
@@ -32,50 +32,50 @@
     <!-- メインセクション -->
     <div class="flex-grow grid grid-cols-12 gap-3 min-h-0 mb-3">
         
-        <!-- 左側 (天気・環境・警報) -->
-        <div class="col-span-7 flex flex-col gap-3 h-full">
+        <!-- 左側メイン (天気 + 指数 + 警報) -->
+        <div class="col-span-8 flex flex-col gap-3 h-full">
             
-            <!-- 今日・明日の天気 -->
-            <div class="flex gap-3 h-[45%]">
-                <!-- 今日 -->
-                <div class="flex-1 rounded-2xl shadow-lg bg-white p-2 flex flex-col items-center justify-between border-2 border-blue-50 relative overflow-hidden">
+            <div class="flex gap-3 h-[70%]">
+                <!-- 今日の天気 -->
+                <div class="flex-[2] rounded-2xl shadow-lg bg-white p-3 flex flex-col items-center justify-between border-2 border-blue-50 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
                     <h2 class="text-2xl font-black text-gray-400">今日の天気</h2>
-                    <div id="today-icon-container" class="text-8xl leading-none weather-icon-shadow my-1"></div>
+                    <div id="today-icon-container" class="text-9xl leading-none weather-icon-shadow my-1"></div>
                     <div class="text-center w-full">
-                        <p id="today-detail" class="text-xl font-bold text-gray-700 truncate px-1"></p>
+                        <p id="today-detail" class="text-2xl font-bold text-gray-700 truncate px-1"></p>
                         <div id="today-temp" class="tracking-tighter"></div>
                     </div>
                 </div>
-                <!-- 明日 -->
-                <div class="flex-1 rounded-2xl shadow-lg bg-white p-2 flex flex-col items-center justify-between border-2 border-blue-50 relative overflow-hidden">
+
+                <!-- 明日の天気 -->
+                <div class="flex-[2] rounded-2xl shadow-lg bg-white p-3 flex flex-col items-center justify-between border-2 border-blue-50 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-2 bg-blue-300"></div>
                     <h2 class="text-2xl font-black text-gray-400">明日の天気</h2>
-                    <div id="tomorrow-icon-container" class="text-8xl leading-none weather-icon-shadow my-1"></div>
+                    <div id="tomorrow-icon-container" class="text-9xl leading-none weather-icon-shadow my-1"></div>
                     <div class="text-center w-full">
-                        <p id="tomorrow-detail" class="text-xl font-bold text-gray-700 truncate px-1"></p>
+                        <p id="tomorrow-detail" class="text-2xl font-bold text-gray-700 truncate px-1"></p>
                         <div id="tomorrow-temp" class="tracking-tighter"></div>
+                    </div>
+                </div>
+
+                <!-- 指数情報 (縦並び) -->
+                <div class="flex-1 flex flex-col gap-3">
+                    <div class="flex-1 bg-white rounded-2xl shadow p-2 text-center border-l-4 border-red-400 flex flex-col justify-center">
+                        <h3 class="text-sm font-bold text-gray-400 leading-none mb-1">暑さ指数</h3>
+                        <div id="env-wbgt" class="text-5xl font-black leading-tight">...</div>
+                    </div>
+                    <div class="flex-1 bg-white rounded-2xl shadow p-2 text-center border-l-4 border-yellow-400 flex flex-col justify-center">
+                        <h3 class="text-sm font-bold text-gray-400 leading-none mb-1">PM2.5</h3>
+                        <div id="env-pm25" class="text-4xl font-black leading-tight">...</div>
+                    </div>
+                    <div class="flex-1 bg-white rounded-2xl shadow p-2 text-center border-l-4 border-orange-400 flex flex-col justify-center">
+                        <h3 class="text-sm font-bold text-gray-400 leading-none mb-1">黄砂</h3>
+                        <div id="env-sand" class="text-4xl font-black leading-tight">...</div>
                     </div>
                 </div>
             </div>
 
-            <!-- 環境情報 -->
-            <div class="grid grid-cols-3 gap-3 h-[20%]">
-                <div class="bg-white rounded-2xl shadow p-1 text-center border-l-4 border-red-400 flex flex-col justify-center">
-                    <h3 class="text-sm font-bold text-gray-500">暑さ指数(WBGT)</h3>
-                    <div id="env-wbgt" class="text-xl font-black">取得中...</div>
-                </div>
-                <div class="bg-white rounded-2xl shadow p-1 text-center border-l-4 border-yellow-400 flex flex-col justify-center">
-                    <h3 class="text-sm font-bold text-gray-500">PM2.5</h3>
-                    <div id="env-pm25" class="text-xl font-black">取得中...</div>
-                </div>
-                <div class="bg-white rounded-2xl shadow p-1 text-center border-l-4 border-orange-400 flex flex-col justify-center">
-                    <h3 class="text-sm font-bold text-gray-500">黄砂(PM10)</h3>
-                    <div id="env-sand" class="text-xl font-black">取得中...</div>
-                </div>
-            </div>
-
-            <!-- 警報 -->
+            <!-- 警報 (下の残りスペース) -->
             <div class="flex-grow min-h-0">
                 <div id="warning-panel" class="w-full h-full rounded-2xl shadow-md bg-white p-2 flex justify-center items-center">
                     <p class="text-lg font-bold text-gray-400">取得中...</p>
@@ -84,7 +84,7 @@
         </div>
 
         <!-- 右側 (レーダー・概況) -->
-        <div class="col-span-5 flex flex-col gap-3 h-full">
+        <div class="col-span-4 flex flex-col gap-3 h-full">
             <div id="radar-container" class="flex-[3] rounded-2xl shadow-lg bg-white relative border-2 border-white min-h-0">
                 <div class="absolute top-2 left-2 z-[400] bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-lg shadow text-xs font-bold text-gray-800 border">
                     📡 雨雲レーダー
@@ -94,7 +94,7 @@
             
             <div class="flex-[2] rounded-2xl shadow-lg bg-white p-3 relative overflow-hidden flex flex-col min-h-0 border-t-4 border-gray-400">
                 <h3 class="text-sm font-bold text-gray-400 mb-1">気象概況</h3>
-                <div class="overflow-y-auto flex-grow text-xl font-bold text-gray-600 leading-snug no-scrollbar" id="weather-overview">
+                <div class="overflow-y-auto flex-grow text-lg font-bold text-gray-600 leading-snug no-scrollbar" id="weather-overview">
                     <p class="text-gray-300 text-sm">読み込み中...</p>
                 </div>
             </div>
@@ -102,7 +102,7 @@
     </div>
 
     <!-- 1時間ごとの予報 -->
-    <div class="flex-none h-[270px] bg-white rounded-2xl shadow-lg p-3 relative overflow-hidden border-t-4 border-blue-500">
+    <div class="flex-none h-[250px] bg-white rounded-2xl shadow-lg p-3 relative overflow-hidden border-t-4 border-blue-500">
         <div class="overflow-x-auto overflow-y-hidden h-full no-scrollbar">
             <div id="hourly-forecast-container" class="flex gap-3 h-full">
                 <p class="text-gray-400 text-sm">データを取得中...</p>
@@ -169,18 +169,19 @@
                 const omRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LOCATION_LAT}&longitude=${LOCATION_LON}&current=temperature_2m,relative_humidity_2m,shortwave_radiation,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FTokyo`);
                 const om = await omRes.json();
                 
-                document.getElementById('today-temp').innerHTML = `<span class="text-3xl font-black text-red-500">${Math.round(om.daily.temperature_2m_max[0])}</span><span class="text-gray-300 mx-1">/</span><span class="text-3xl font-black text-blue-500">${Math.round(om.daily.temperature_2m_min[0])}</span>`;
-                document.getElementById('tomorrow-temp').innerHTML = `<span class="text-3xl font-black text-red-500">${Math.round(om.daily.temperature_2m_max[1])}</span><span class="text-gray-300 mx-1">/</span><span class="text-3xl font-black text-blue-500">${Math.round(om.daily.temperature_2m_min[1])}</span>`;
+                // 気温には「℃」を復活
+                document.getElementById('today-temp').innerHTML = `<span class="text-4xl font-black text-red-500">${Math.round(om.daily.temperature_2m_max[0])}<span class="text-xl">℃</span></span><span class="text-gray-300 mx-1">/</span><span class="text-4xl font-black text-blue-500">${Math.round(om.daily.temperature_2m_min[0])}<span class="text-xl">℃</span></span>`;
+                document.getElementById('tomorrow-temp').innerHTML = `<span class="text-4xl font-black text-red-500">${Math.round(om.daily.temperature_2m_max[1])}<span class="text-xl">℃</span></span><span class="text-gray-300 mx-1">/</span><span class="text-4xl font-black text-blue-500">${Math.round(om.daily.temperature_2m_min[1])}<span class="text-xl">℃</span></span>`;
 
-                // 環境指数 (WBGTの単位℃を削除)
+                // 環境指数 (暑さ指数は数値のみのまま維持)
                 const wVal = calculateWBGT(om.current.temperature_2m, om.current.relative_humidity_2m, om.current.shortwave_radiation, om.current.wind_speed_10m);
                 const lv = getWBGTLevel(wVal);
-                document.getElementById('env-wbgt').innerHTML = `<span class="${lv.color}">${lv.text} (${wVal})</span>`;
+                document.getElementById('env-wbgt').innerHTML = `<div class="flex flex-col"><span class="${lv.color} text-base font-bold">${lv.text}</span><span class="${lv.color} text-5xl font-black">${wVal}</span></div>`;
 
                 const aqRes = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LOCATION_LAT}&longitude=${LOCATION_LON}&current=pm10,pm2_5&timezone=Asia%2FTokyo`);
                 const aq = await aqRes.json();
-                document.getElementById('env-pm25').textContent = Math.round(aq.current.pm2_5) + "μg";
-                document.getElementById('env-sand').textContent = Math.round(aq.current.pm10) + "μg";
+                document.getElementById('env-pm25').innerHTML = `<span class="text-4xl font-black">${Math.round(aq.current.pm2_5)}</span><span class="text-sm font-bold ml-1">μg</span>`;
+                document.getElementById('env-sand').innerHTML = `<span class="text-4xl font-black">${Math.round(aq.current.pm10)}</span><span class="text-sm font-bold ml-1">μg</span>`;
 
                 const ovRes = await fetch(`https://www.jma.go.jp/bosai/forecast/data/overview_forecast/${JMA_OFFICE_CODE}.json`);
                 const ov = await ovRes.json();
@@ -203,7 +204,7 @@
                     }
                 } catch (e) { panel.innerHTML = '<span class="text-gray-400 text-xs">警報データ取得エラー</span>'; }
 
-                // 1時間ごとの予報 (WBGTの単位℃を削除)
+                // 1時間ごとの予報
                 const hrRes = await fetch(OPEN_METEO_URL);
                 const hr = await hrRes.json();
                 let hrHtml = '';
