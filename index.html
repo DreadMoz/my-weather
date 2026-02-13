@@ -169,11 +169,9 @@
                 const omRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LOCATION_LAT}&longitude=${LOCATION_LON}&current=temperature_2m,relative_humidity_2m,shortwave_radiation,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FTokyo`);
                 const om = await omRes.json();
                 
-                // 気温には「℃」を復活
                 document.getElementById('today-temp').innerHTML = `<span class="text-4xl font-black text-red-500">${Math.round(om.daily.temperature_2m_max[0])}<span class="text-xl">℃</span></span><span class="text-gray-300 mx-1">/</span><span class="text-4xl font-black text-blue-500">${Math.round(om.daily.temperature_2m_min[0])}<span class="text-xl">℃</span></span>`;
                 document.getElementById('tomorrow-temp').innerHTML = `<span class="text-4xl font-black text-red-500">${Math.round(om.daily.temperature_2m_max[1])}<span class="text-xl">℃</span></span><span class="text-gray-300 mx-1">/</span><span class="text-4xl font-black text-blue-500">${Math.round(om.daily.temperature_2m_min[1])}<span class="text-xl">℃</span></span>`;
 
-                // 環境指数 (暑さ指数は数値のみのまま維持)
                 const wVal = calculateWBGT(om.current.temperature_2m, om.current.relative_humidity_2m, om.current.shortwave_radiation, om.current.wind_speed_10m);
                 const lv = getWBGTLevel(wVal);
                 document.getElementById('env-wbgt').innerHTML = `<div class="flex flex-col"><span class="${lv.color} text-base font-bold">${lv.text}</span><span class="${lv.color} text-5xl font-black">${wVal}</span></div>`;
@@ -185,7 +183,9 @@
 
                 const ovRes = await fetch(`https://www.jma.go.jp/bosai/forecast/data/overview_forecast/${JMA_OFFICE_CODE}.json`);
                 const ov = await ovRes.json();
-                document.getElementById('weather-overview').innerHTML = ov.text.replace(/\n/g, '<br>');
+                // 空白行を削除するロジックを適用（連続する改行を1つに置換）
+                const cleanText = ov.text.replace(/\n\s*\n/g, '\n').replace(/\n/g, '<br>');
+                document.getElementById('weather-overview').innerHTML = cleanText;
 
                 // 警報
                 const panel = document.getElementById('warning-panel');
