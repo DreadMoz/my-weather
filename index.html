@@ -18,25 +18,25 @@
         .weather-icon-shadow { text-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .leaflet-container { border-radius: 1rem; }
+        .leaflet-container { border-radius: 1rem; background: #d4dadc !important; }
     </style>
 </head>
 <body class="flex flex-col p-2 h-screen">
     
-    <!-- ヘッダー -->
+    <!-- Header -->
     <header class="flex-none flex justify-between items-center mb-2 pb-1 border-b-2 border-gray-300">
         <h1 class="text-4xl font-black text-[#4255a4] tracking-tight">三宅小学校 気象情報</h1>
         <p id="current-datetime" class="text-4xl font-bold text-gray-600 tracking-tighter"></p>
     </header>
 
-    <!-- メインセクション -->
+    <!-- Main Section -->
     <div class="flex-grow grid grid-cols-12 gap-3 min-h-0 mb-3">
         
-        <!-- 左側メイン (天気 + 指数 + 警報) -->
+        <!-- Left Side (Weather + Indices + Warnings) -->
         <div class="col-span-8 flex flex-col gap-3 h-full">
             
             <div class="flex gap-3 h-[70%]">
-                <!-- 今日の天気 -->
+                <!-- Today's Weather -->
                 <div class="flex-[2] rounded-2xl shadow-lg bg-white p-3 flex flex-col items-center justify-between border-2 border-blue-50 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
                     <h2 class="text-2xl font-black text-gray-400">今日の天気</h2>
@@ -47,7 +47,7 @@
                     </div>
                 </div>
 
-                <!-- 明日の天気 -->
+                <!-- Tomorrow's Weather -->
                 <div class="flex-[2] rounded-2xl shadow-lg bg-white p-3 flex flex-col items-center justify-between border-2 border-blue-50 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-2 bg-blue-300"></div>
                     <h2 class="text-2xl font-black text-gray-400">明日の天気</h2>
@@ -58,24 +58,27 @@
                     </div>
                 </div>
 
-                <!-- 指数情報 (縦並び) -->
+                <!-- Environmental Indices -->
                 <div class="flex-1 flex flex-col gap-3">
-                    <div class="flex-1 bg-white rounded-2xl shadow p-2 text-center border-l-4 border-red-400 flex flex-col justify-center">
+                    <!-- WBGT -->
+                    <div id="card-wbgt" class="flex-1 bg-white rounded-2xl shadow p-2 text-center border-l-8 border-gray-200 flex flex-col justify-center transition-all">
                         <h3 class="text-sm font-bold text-gray-400 leading-none mb-1">暑さ指数</h3>
-                        <div id="env-wbgt" class="text-5xl font-black leading-tight">...</div>
+                        <div id="env-wbgt" class="flex flex-col">...</div>
                     </div>
-                    <div class="flex-1 bg-white rounded-2xl shadow p-2 text-center border-l-4 border-yellow-400 flex flex-col justify-center">
+                    <!-- PM2.5 -->
+                    <div id="card-pm25" class="flex-1 bg-white rounded-2xl shadow p-2 text-center border-l-8 border-gray-200 flex flex-col justify-center transition-all">
                         <h3 class="text-sm font-bold text-gray-400 leading-none mb-1">PM2.5</h3>
-                        <div id="env-pm25" class="text-4xl font-black leading-tight">...</div>
+                        <div id="env-pm25" class="flex flex-col">...</div>
                     </div>
-                    <div class="flex-1 bg-white rounded-2xl shadow p-2 text-center border-l-4 border-orange-400 flex flex-col justify-center">
+                    <!-- Dust (Yellow Sand) -->
+                    <div id="card-sand" class="flex-1 bg-white rounded-2xl shadow p-2 text-center border-l-8 border-gray-200 flex flex-col justify-center transition-all">
                         <h3 class="text-sm font-bold text-gray-400 leading-none mb-1">黄砂</h3>
-                        <div id="env-sand" class="text-4xl font-black leading-tight">...</div>
+                        <div id="env-sand" class="flex flex-col">...</div>
                     </div>
                 </div>
             </div>
 
-            <!-- 警報 (下の残りスペース) -->
+            <!-- Warning Panel -->
             <div class="flex-grow min-h-0">
                 <div id="warning-panel" class="w-full h-full rounded-2xl shadow-md bg-white p-2 flex justify-center items-center">
                     <p class="text-lg font-bold text-gray-400">取得中...</p>
@@ -83,11 +86,11 @@
             </div>
         </div>
 
-        <!-- 右側 (レーダー・概況) -->
+        <!-- Right Side (Radar + Overview) -->
         <div class="col-span-4 flex flex-col gap-3 h-full">
             <div id="radar-container" class="flex-[3] rounded-2xl shadow-lg bg-white relative border-2 border-white min-h-0">
                 <div class="absolute top-2 left-2 z-[400] bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-lg shadow text-xs font-bold text-gray-800 border">
-                    📡 雨雲レーダー
+                    📡 雨雲レーダー (5分更新)
                 </div>
                 <div id="map" class="w-full h-full rounded-2xl"></div>
             </div>
@@ -101,7 +104,7 @@
         </div>
     </div>
 
-    <!-- 1時間ごとの予報 -->
+    <!-- Hourly Forecast -->
     <div class="flex-none h-[250px] bg-white rounded-2xl shadow-lg p-3 relative overflow-hidden border-t-4 border-blue-500">
         <div class="overflow-x-auto overflow-y-hidden h-full no-scrollbar">
             <div id="hourly-forecast-container" class="flex gap-3 h-full">
@@ -127,12 +130,29 @@
             return Math.round(0.7 * tw + 0.2 * tg + 0.1 * t);
         }
 
-        function getWBGTLevel(val) {
-            if (val >= 31) return { text: "危険", color: "text-purple-600", bg: "bg-purple-100", border: "border-purple-400" };
-            if (val >= 28) return { text: "厳重警戒", color: "text-red-600", bg: "bg-red-100", border: "border-red-400" };
-            if (val >= 25) return { text: "警戒", color: "text-orange-600", bg: "bg-orange-100", border: "border-orange-400" };
-            if (val >= 21) return { text: "注意", color: "text-yellow-600", bg: "bg-yellow-100", border: "border-yellow-400" };
-            return { text: "ほぼ安全", color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-300" };
+        // 判定ラベル取得用関数
+        function getLevel(type, val) {
+            if (type === 'WBGT') {
+                if (val >= 31) return { text: "危険", color: "text-purple-600", border: "border-purple-500" };
+                if (val >= 28) return { text: "厳重警戒", color: "text-red-600", border: "border-red-500" };
+                if (val >= 25) return { text: "警戒", color: "text-orange-600", border: "border-orange-500" };
+                if (val >= 21) return { text: "注意", color: "text-yellow-600", border: "border-yellow-500" };
+                return { text: "ほぼ安全", color: "text-blue-600", border: "border-blue-500" };
+            }
+            if (type === 'PM25') {
+                if (val >= 70) return { text: "非常に多い", color: "text-purple-600", border: "border-purple-500" };
+                if (val >= 35) return { text: "多い", color: "text-red-600", border: "border-red-500" };
+                if (val >= 25) return { text: "やや多い", color: "text-orange-600", border: "border-orange-500" };
+                if (val >= 15) return { text: "普通", color: "text-yellow-600", border: "border-yellow-500" };
+                return { text: "少ない", color: "text-blue-600", border: "border-blue-500" };
+            }
+            if (type === 'SAND') {
+                if (val >= 50) return { text: "非常に多い", color: "text-purple-600", border: "border-purple-500" };
+                if (val >= 30) return { text: "多い", color: "text-red-600", border: "border-red-500" };
+                if (val >= 15) return { text: "やや多い", color: "text-orange-600", border: "border-orange-500" };
+                if (val >= 5) return { text: "普通", color: "text-yellow-600", border: "border-yellow-500" };
+                return { text: "少ない", color: "text-blue-600", border: "border-blue-500" };
+            }
         }
 
         function updateClock() {
@@ -141,22 +161,59 @@
             document.getElementById('current-datetime').textContent = `${n.getMonth()+1}/${n.getDate()}(${days[n.getDay()]}) ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
         }
 
-        let map;
+        let map, radarLayer;
+        
         function initRadar() {
             if (map) return;
-            map = L.map('map', { zoomControl: false, attributionControl: false }).setView([LOCATION_LAT, LOCATION_LON], 11);
+            map = L.map('map', { 
+                zoomControl: false, 
+                attributionControl: false,
+                minZoom: 5,
+                maxZoom: 12,
+                fadeAnimation: false
+            }).setView([LOCATION_LAT, LOCATION_LON], 10);
+            
             L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', { opacity: 0.8 }).addTo(map);
-            fetch('https://www.jma.go.jp/bosai/jmatile/data/nowc/targetTimes_N1.json').then(r => r.json()).then(d => {
-                if(!d || d.length === 0) return;
-                const l = d[0].basetime, v = d[0].validtime;
-                L.tileLayer(`https://www.jma.go.jp/bosai/jmatile/data/nowc/${l}/none/${v}/surf/hrpns/{z}/{x}/{y}.png`, { opacity: 0.6 }).addTo(map);
+
+            map.whenReady(() => {
+                updateRadarLayer();
+                setTimeout(() => {
+                    map.invalidateSize();
+                    map.fire('moveend'); 
+                }, 500);
             });
-            L.marker([LOCATION_LAT, LOCATION_LON], { icon: L.divIcon({ className: '', html: '<div class="w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-md animate-ping"></div>' }) }).addTo(map);
+
+            setInterval(updateRadarLayer, 300000);
+
+            L.marker([LOCATION_LAT, LOCATION_LON], { 
+                icon: L.divIcon({ 
+                    className: '', 
+                    html: '<div class="w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-md animate-ping"></div>' 
+                }) 
+            }).addTo(map);
+        }
+
+        async function updateRadarLayer() {
+            try {
+                const res = await fetch('https://www.jma.go.jp/bosai/jmatile/data/nowc/targetTimes_N1.json');
+                const data = await res.json();
+                if (!data || data.length === 0) return;
+                const baseTime = data[0].basetime;
+                const validTime = data[0].validtime;
+                if (radarLayer) { map.removeLayer(radarLayer); }
+                const cacheBuster = new Date().getTime();
+                radarLayer = L.tileLayer(`https://www.jma.go.jp/bosai/jmatile/data/nowc/${baseTime}/none/${validTime}/surf/hrpns/{z}/{x}/{y}.png?v=${cacheBuster}`, {
+                    opacity: 0.6,
+                    zIndex: 100,
+                    tileSize: 256,
+                    updateWhenIdle: false,
+                    updateWhenZooming: true
+                }).addTo(map);
+            } catch (e) { console.error("Radar Update Error:", e); }
         }
 
         async function updateData() {
             try {
-                // 天気予報
                 const fRes = await fetch(`https://www.jma.go.jp/bosai/forecast/data/forecast/${JMA_OFFICE_CODE}.json`);
                 const fData = await fRes.json();
                 const miyakeF = fData[0].timeSeries[0].areas.find(a => a.area.code === JMA_AREA_CODE);
@@ -172,28 +229,36 @@
                 document.getElementById('today-temp').innerHTML = `<span class="text-4xl font-black text-red-500">${Math.round(om.daily.temperature_2m_max[0])}<span class="text-xl">℃</span></span><span class="text-gray-300 mx-1">/</span><span class="text-4xl font-black text-blue-500">${Math.round(om.daily.temperature_2m_min[0])}<span class="text-xl">℃</span></span>`;
                 document.getElementById('tomorrow-temp').innerHTML = `<span class="text-4xl font-black text-red-500">${Math.round(om.daily.temperature_2m_max[1])}<span class="text-xl">℃</span></span><span class="text-gray-300 mx-1">/</span><span class="text-4xl font-black text-blue-500">${Math.round(om.daily.temperature_2m_min[1])}<span class="text-xl">℃</span></span>`;
 
+                // 指数表示の更新 (WBGT)
                 const wVal = calculateWBGT(om.current.temperature_2m, om.current.relative_humidity_2m, om.current.shortwave_radiation, om.current.wind_speed_10m);
-                const lv = getWBGTLevel(wVal);
-                document.getElementById('env-wbgt').innerHTML = `<div class="flex flex-col"><span class="${lv.color} text-base font-bold">${lv.text}</span><span class="${lv.color} text-5xl font-black">${wVal}</span></div>`;
+                const wLv = getLevel('WBGT', wVal);
+                document.getElementById('card-wbgt').className = `flex-1 bg-white rounded-2xl shadow p-2 text-center border-l-8 ${wLv.border} flex flex-col justify-center transition-all`;
+                document.getElementById('env-wbgt').innerHTML = `<span class="${wLv.color} text-base font-bold">${wLv.text}</span><span class="${wLv.color} text-5xl font-black leading-none">${wVal}</span>`;
 
+                // 指数表示の更新 (PM2.5 / Sand)
                 const aqRes = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LOCATION_LAT}&longitude=${LOCATION_LON}&current=pm10,pm2_5&timezone=Asia%2FTokyo`);
                 const aq = await aqRes.json();
-                document.getElementById('env-pm25').innerHTML = `<span class="text-4xl font-black">${Math.round(aq.current.pm2_5)}</span><span class="text-sm font-bold ml-1">μg</span>`;
-                document.getElementById('env-sand').innerHTML = `<span class="text-4xl font-black">${Math.round(aq.current.pm10)}</span><span class="text-sm font-bold ml-1">μg</span>`;
+                
+                const pVal = Math.round(aq.current.pm2_5);
+                const pLv = getLevel('PM25', pVal);
+                document.getElementById('card-pm25').className = `flex-1 bg-white rounded-2xl shadow p-2 text-center border-l-8 ${pLv.border} flex flex-col justify-center transition-all`;
+                document.getElementById('env-pm25').innerHTML = `<span class="${pLv.color} text-base font-bold">${pLv.text}</span><div class="${pLv.color}"><span class="text-4xl font-black">${pVal}</span><span class="text-xs font-bold ml-0.5">μg</span></div>`;
+                
+                const sVal = Math.round(aq.current.pm10);
+                const sLv = getLevel('SAND', sVal);
+                document.getElementById('card-sand').className = `flex-1 bg-white rounded-2xl shadow p-2 text-center border-l-8 ${sLv.border} flex flex-col justify-center transition-all`;
+                document.getElementById('env-sand').innerHTML = `<span class="${sLv.color} text-base font-bold">${sLv.text}</span><div class="${sLv.color}"><span class="text-4xl font-black">${sVal}</span><span class="text-xs font-bold ml-0.5">μg</span></div>`;
 
                 const ovRes = await fetch(`https://www.jma.go.jp/bosai/forecast/data/overview_forecast/${JMA_OFFICE_CODE}.json`);
                 const ov = await ovRes.json();
-                // 空白行を削除するロジックを適用（連続する改行を1つに置換）
                 const cleanText = ov.text.replace(/\n\s*\n/g, '\n').replace(/\n/g, '<br>');
                 document.getElementById('weather-overview').innerHTML = cleanText;
 
-                // 警報
                 const panel = document.getElementById('warning-panel');
                 try {
                     const wngRes = await fetch(`https://www.jma.go.jp/bosai/warning/data/warning/${JMA_OFFICE_CODE}.json`);
                     const wng = await wngRes.json();
                     let miyakeW = Array.isArray(wng) ? wng[0]?.timeSeries?.[0]?.areas?.find(a => a.area.code === MIYAKE_AREA_CODE) : wng.timeSeries?.[0]?.areas?.find(a => a.area.code === MIYAKE_AREA_CODE);
-
                     if (!miyakeW || !miyakeW.warnings || miyakeW.warnings.filter(w => w.status === "発表" || w.status === "継続").length === 0) {
                         panel.className = "w-full h-full rounded-2xl bg-green-50 border-2 border-green-200 flex justify-center items-center";
                         panel.innerHTML = '<span class="text-2xl font-black text-green-600">🟢 異常なし</span>';
@@ -204,7 +269,6 @@
                     }
                 } catch (e) { panel.innerHTML = '<span class="text-gray-400 text-xs">警報データ取得エラー</span>'; }
 
-                // 1時間ごとの予報
                 const hrRes = await fetch(OPEN_METEO_URL);
                 const hr = await hrRes.json();
                 let hrHtml = '';
@@ -215,27 +279,27 @@
                     const hTime = new Date(hr.hourly.time[idx]).getHours();
                     const hT = Math.round(hr.hourly.temperature_2m[idx]);
                     const hW = calculateWBGT(hT, hr.hourly.relative_humidity_2m[idx], hr.hourly.shortwave_radiation[idx], hr.hourly.wind_speed_10m[idx]);
-                    const hLv = getWBGTLevel(hW);
+                    const hLv = getLevel('WBGT', hW);
                     hrHtml += `
                         <div class="flex flex-col items-center justify-between min-w-[135px] bg-gray-50 rounded-2xl p-3 border-2 border-gray-100 shadow-sm h-full">
                             <span class="text-lg font-black text-gray-500">${hTime}時</span>
                             <span class="text-5xl my-1">${WMO_ICONS[hr.hourly.weathercode[idx]] || '☁️'}</span>
                             <span class="text-3xl font-black text-gray-700">${hT}<span class="text-sm font-bold">℃</span></span>
-                            <div class="w-full text-center p-1 rounded-lg border ${hLv.border} ${hLv.bg} flex flex-col items-center">
-                                <span class="text-xs font-bold ${hLv.color}">${hLv.text}</span>
+                            <div class="w-full text-center p-1 rounded-lg border ${hLv.border.replace('border-', 'border-opacity-30 border-')} bg-white flex flex-col items-center">
+                                <span class="text-[10px] font-bold ${hLv.color} leading-none">暑さ指数</span>
                                 <span class="text-xl font-black ${hLv.color}">${hW}</span>
                             </div>
                         </div>
                     `;
                 }
                 document.getElementById('hourly-forecast-container').innerHTML = hrHtml;
-
             } catch (e) { console.error("UpdateData Error:", e); }
         }
 
         window.onload = () => {
             updateClock(); setInterval(updateClock, 1000);
-            initRadar(); updateData(); setInterval(updateData, 600000);
+            initRadar(); updateData();
+            setInterval(updateData, 600000);
         };
     </script>
 </body>
